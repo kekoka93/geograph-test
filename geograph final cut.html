@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Hot Map working version</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 90%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 90%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+
+      function initMap() {
+        var myLatLng = {lat: -25.363, lng: 131.044};
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 10,
+          center:{lat:39.0458, lng:-76.6413}
+        });
+
+        var marker = new google.maps.Marker({
+          position:{lat:38.989561,lng:-76.537282},
+          map: map,
+          title: 'Annapolis'
+         });
+        var marker = new google.maps.Marker({
+          position:{lat:38.947026,lng:-76.719646},
+          map: map,
+          title: 'Bowie!'
+        });
+        var marker = new google.maps.Marker({
+          position:{lat:39.091386,lng:-76.624542},
+          map: map,
+          title: 'Millersville'
+         });
+         var marker = new google.maps.Marker({
+          position:{lat:39.126424,lng:-76.586649},
+          map: map,
+          title: 'Pasadena'
+        });
+        var marker = new google.maps.Marker({
+          position:{lat:38.947026,lng:-76.719646},
+          map: map,
+          title: 'North Bowie!'
+        });
+        var marker = new google.maps.Marker({
+          position:{lat:39.020494,lng:-76.693311},
+          map: map,
+          title: 'Crofton!'
+        });
+        var marker = new google.maps.Marker({
+          position:{lat:39.079701,lng:-76.685257},
+          map: map,
+          title: 'Odenton!'
+        });
+        var marker = new google.maps.Marker({
+          position:{lat:38.927986,lng:-76.574327},
+          map: map,
+          title: 'Edgewater'
+        });
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDUuhNqdM2oUmM8ST42Dns5-bEiAtQKcfM&callback=initMap">
+    </script>
+  </body>
+</html>

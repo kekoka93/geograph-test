@@ -1,0 +1,24 @@
+%spark.pyspark
+
+address = z.get("clientAddress")
+#Now create one for each clinic
+clinics = {"Annapolis":"Belcher Pavilion","Bowie":"4175 Hanson Ct N, Bowie, MD 20716","Bowie North":"15500 Annapolis Rd., Bowie MD 20715","Crofton":"1153 MD-3 Gambrills, MD 21054","Odenton":"1106 Annapolis Rd., Odenton, MD 21113","Pasadena":"8109 Ritchie Hwy Pasadena, MD 21122"}
+clinicLocations = {}
+location = geolocator.geocode(address)
+source = (location.latitude, location.longitude)
+closestDistance=500
+closest=""
+
+for clinic in clinics:
+    loc = geolocator.geocode(clinics[clinic])
+    coords = (loc.latitude, loc.longitude)
+    clinicLocations[clinic] = (coords, vincenty(source, coords).miles)
+    if clinicLocations[clinic][1] < closestDistance:
+        closestDistance = clinicLocations[clinic][1]
+        closest = clinic
+        z.put("Closest",coords)
+    print("Distance to "+clinic+ " is " + str(clinicLocations[clinic][1]) + " miles")
+print("The closest clinic is "+closest+"@"+str(clinicLocations[closest][0]))
+z.show("%angular <div id='closestClinic' style='display:none'>"+str(clinicLocations[closest][0])+"</div>")
+z.show("%angular <div id='clientLocation' style='display:none'>"+str(source)+"</div>")
+
