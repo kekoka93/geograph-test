@@ -7,6 +7,7 @@
         font-family: 'Roboto','sans-serif';
         line-height: 30px;
         padding-left: 10px;
+        overflow: auto;
       }
 
       #right-panel select, #right-panel input {
@@ -25,6 +26,9 @@
         margin: 0;
         padding: 0;
       }
+      #inputSearch {
+          width: 80%;
+      }
       #map {
         height: 100%;
         width: 50%;
@@ -36,6 +40,10 @@
       }
       #output {
         font-size: 11px;
+      }
+      #directions {
+          height: 500px;
+          overflow: auto;
       }
     </style>
   </head>
@@ -50,6 +58,7 @@
         <strong>Results</strong>
       </div>
       <div id="output"></div>
+      <div id="directions"></div>
     </div>
     <div id="map"></div>
     <script>
@@ -63,6 +72,8 @@
       var clinics = [Annapolis,Bowie,Bowie_North,Crofton,Millersville,Odenton,Pasadena];
       var originPlace = null;
       var map = null;
+      var directionsService = null; //new google.maps.DirectionsService;
+      var directionsDisplay = null; //new google.maps.DirectionsRenderer;
 
       function initAutocomplete() {
         var input = document.getElementById('inputSearch');
@@ -74,6 +85,27 @@
                 updateDistances(address);
             }
         });
+      }
+
+      function calculateAndDisplayRoute(src, dest) {
+        directionsService.route({
+          origin: src,
+          destination: dest,
+          travelMode: 'DRIVING'
+        }, function(response, status) {
+          if (status === 'OK') {
+            directionsDisplay.setDirections(response);
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
+      }
+
+      function initDirections() {
+        directionsService = new google.maps.DirectionsService;
+        directionsDisplay = new google.maps.DirectionsRenderer;
+        directionsDisplay.setMap(map);
+        directionsDisplay.setPanel(document.getElementById('directions'));
       }
 
       function updateDistances(origin) {
@@ -90,7 +122,7 @@
           origins: [origin],
           destinations: clinics,
           travelMode: 'DRIVING',
-          unitSystem: google.maps.UnitSystem.STANDARD,
+          unitSystem: google.maps.UnitSystem.IMPERIAL,
           avoidHighways: false,
           avoidTolls: false
         }, function(response, status) {
@@ -133,7 +165,8 @@
                     ': ' + results[j].distance.text + ' in ' +
                     results[j].duration.text + '<br>';
               }
-              outputDiv.innerHTML += "Closest Clinic:<br>"+closest.distanceText + " to " +closest.name;
+              outputDiv.innerHTML += "<h1>Closest Clinic:</h1><br>"+closest.distanceText + " to " +closest.name;
+              calculateAndDisplayRoute(document.getElementById('inputSearch').value,closest.name);
             }
           }
         });
@@ -147,6 +180,7 @@
 
         updateDistances(null);
         initAutocomplete();
+        initDirections();
       }
 
       function deleteMarkers(markersArray) {
