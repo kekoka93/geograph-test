@@ -89,15 +89,44 @@
   <body>
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
     <div id="map"></div>
-    <script>
+    <script type="text/javascript">
+    
+    function makeAJAXRequest(url,callback) {
+        console.log("Making a request");
+        var xhttp;
+        xhttp=new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            console.log("The request came back!");
+            callback(this);
+          }
+        };
+        xhttp.open("GET", url, true);
+        xhttp.send();
+      }
 
-      function initAutocomplete() {
+      function gotDistances(xhttp) {
+        console.log(xhttp.responseText);
+      }
+
+      function loadDistances() {
+        console.log("Loading Distances");
+        var distanceMatrixAPI_KEY="AIzaSyBLB5vutmVUgj8ziYMz62vbdbRvr9UL7Z4";
+        var start = encodeURI("1023 Sheridan Ave, Charlottesville, VA 22901"); // | delineated locations!
+        var end = encodeURI("13009 3rd St, Bowie, MD 20720");
+        var distanceMatrixURL="https://maps.googleapis.com/maps/api/distancematrix/xml?origins="+start+"&destinations="+end+"&mode=driving&language=en-EN&key="+distanceMatrixAPI_KEY;
+        makeAJAXRequest(distanceMatrixURL, gotDistances);
+      }
+
+      
+    
+    function initAutocomplete() {
+        loadDistances();
         var map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: -33.8688, lng: 151.2195},
           zoom: 13,
           mapTypeId: 'roadmap'
         });
-
         var input = document.getElementById('pac-input');
         var searchBox = new google.maps.places.SearchBox(input);
         map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
@@ -147,10 +176,10 @@
               bounds.extend(place.geometry.location);
             }
           });
+          loadDistances();
           map.fitBounds(bounds);
         });
       }
-
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHENLjfFFHxDja3fOHUy_8vO9G2oGoTC4&libraries=places&callback=initAutocomplete"
          async defer></script>

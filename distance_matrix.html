@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Distance Matrix service</title>
+    <style>
+      #right-panel {
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+
+      #right-panel select, #right-panel input {
+        font-size: 15px;
+      }
+
+      #right-panel select {
+        width: 100%;
+      }
+
+      #right-panel i {
+        font-size: 12px;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+        width: 50%;
+      }
+      #right-panel {
+        float: right;
+        width: 48%;
+        padding-left: 2%;
+      }
+      #output {
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="right-panel">
+      <div id="inputs">
+        <pre>
+            <input type="search" id="inputSearch"/>
+        </pre>
+      </div>
+      <div>
+        <strong>Results</strong>
+      </div>
+      <div id="output"></div>
+    </div>
+    <div id="map"></div>
+    <script>
+      var Annapolis='2000 Medical Pkwy, Annapolis, MD 21401';
+      var Bowie='4175 North Hanson Ct., Bowie, MD 20716';
+      var Bowie_North='15500 Annapolis Rd., Bowie MD 20715';
+      var Crofton='1153 Route 3 N, Gambrills, MD 21054';
+      var Millersville='8638 Veteran\'s Hwy., Millersville, MD 21108';
+      var Odenton='1106 Annapolis Rd., Odenton, MD 21113';
+      var Pasadena='8109 Ritchie Hwy Pasadena, MD 21122';
+      var clinics = [Annapolis,Bowie,Bowie_North,Crofton,Millersville,Odenton,Pasadena];
+      var originPlace = null;
+      var map = null;
+
+      function initAutocomplete() {
+        var input = document.getElementById('inputSearch');
+        var searchBox = new google.maps.places.SearchBox(input);
+        searchBox.addListener('places_changed', function() {
+            var places = searchBox.getPlaces();
+            if(places.length > 0){
+                var address = document.getElementById('inputSearch').value ;
+                updateDistances(address);
+            }
+        });
+      }
+
+      function updateDistances(origin) {
+        if(origin == null)return;
+        var bounds = new google.maps.LatLngBounds;
+        var destinationIcon = 'https://chart.googleapis.com/chart?' +
+            'chst=d_map_pin_icon&chld=medical|DDDDDD|000000';
+        var originIcon = 'https://chart.googleapis.com/chart?' +
+            'chst=d_map_pin_letter&chld=0|FFFF00|000000';
+        var geocoder = new google.maps.Geocoder;
+        var markersArray = [];
+        var service = new google.maps.DistanceMatrixService;
+        service.getDistanceMatrix({
+          origins: [origin],
+          destinations: clinics,
+          travelMode: 'DRIVING',
+          unitSystem: google.maps.UnitSystem.STANDARD,
+          avoidHighways: false,
+          avoidTolls: false
+        }, function(response, status) {
+          if (status !== 'OK') {
+            alert('Error was: ' + status);
+          } else {
+            var originList = response.originAddresses;
+            var destinationList = response.destinationAddresses;
+            var outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+            deleteMarkers(markersArray);
+
+            var showGeocodedAddressOnMap = function(asDestination) {
+              var icon = asDestination ? destinationIcon : originIcon;
+              return function(results, status) {
+                if (status === 'OK') {
+                  map.fitBounds(bounds.extend(results[0].geometry.location));
+                  markersArray.push(new google.maps.Marker({
+                    map: map,
+                    position: results[0].geometry.location,
+                    icon: icon
+                  }));
+                } else {
+                  alert('Geocode was not successful due to: ' + status);
+                }
+              };
+            };
+            var closest = {name: "", distance:1000000};
+            for (var i = 0; i < originList.length; i++) {
+              var results = response.rows[i].elements;
+              geocoder.geocode({'address': originList[i]},
+                  showGeocodedAddressOnMap(false));
+              for (var j = 0; j < results.length; j++) {
+                if ( results[j].distance.value < closest.distance){
+                    closest = {name: destinationList[j],distance:results[j].distance.value,distanceText:results[j].distance.text};
+                }
+                geocoder.geocode({'address': destinationList[j]},
+                    showGeocodedAddressOnMap(true));
+                outputDiv.innerHTML += originList[i] + ' to ' + destinationList[j] +
+                    ': ' + results[j].distance.text + ' in ' +
+                    results[j].duration.text + '<br>';
+              }
+              outputDiv.innerHTML += "Closest Clinic:<br>"+closest.distanceText + " to " +closest.name;
+            }
+          }
+        });
+      }
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 55.53, lng: 9.4},
+          zoom: 10
+        });
+
+        updateDistances(null);
+        initAutocomplete();
+      }
+
+      function deleteMarkers(markersArray) {
+        for (var i = 0; i < markersArray.length; i++) {
+          markersArray[i].setMap(null);
+        }
+        markersArray = [];
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfqahrweSqTBjhb3BBbrUo8evMzGwsy7g&libraries=places&callback=initMap">
+    </script>
+  </body>
+</html>
